@@ -4,6 +4,7 @@ dotenv.config();
 import cors from 'cors';
 import userRoutes from './routes/userroute';
 import MongoDB from './db';
+import adminrouter from './routes/adminroute';
 
 
 
@@ -16,6 +17,7 @@ app.use(express.json({ limit: '10mb' }));
 
 // Routes
 app.use('/', userRoutes);
+app.use('/admin/', adminrouter)
 
 // MongoDB connection
 MongoDB.connect()
