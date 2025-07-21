@@ -131,7 +131,7 @@ router.put("/templates/:id", requireAuth, async (req, res): Promise<void> => {
   }
 });
 
-router.get("/profile", requireAuth, async (req, res): Promise<void> => {
+router.get("/user/profile", requireAuth, async (req, res): Promise<void> => {
   try {
     const user = await User.findOne({ _id: req.userId });
     res.json(user);
@@ -141,7 +141,7 @@ router.get("/profile", requireAuth, async (req, res): Promise<void> => {
 }
 )
 
-router.put("/profile", requireAuth, async (req, res): Promise<void> => {
+router.put("/user/profile", requireAuth, async (req, res): Promise<void> => {
   try {
     const updated = await User.findOneAndUpdate(
       { _id: req.userId },
@@ -172,7 +172,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // ✅ 1. Send OTP
-router.post("/forgotpassword", async (req, res): Promise<any> => {
+router.post("/user/forgotpassword", async (req, res): Promise<any> => {
   const { email } = req.body;
 
   const user = await User.findOne({ email });
