@@ -4,6 +4,7 @@ import Admin from '../models/admin';
 import adminrequireAuth from './middleware/adminauth';
 import User from '../models/user';
 import template from '../models/template';
+import { sendNewsletterEmail } from "../utils/mailer";
 
 
 const adminrouter = express.Router();
@@ -119,6 +120,23 @@ adminrouter.get("/users/list", adminrequireAuth, async (req: Request, res: Respo
 });
 
 
+
+adminrouter.post("/send-newsletter", async (req, res) => {
+    const { subject, content } = req.body;
+
+    try {
+        const users = await User.find({}, "email");
+        const emails = users.map((user) => user.email);
+
+        // Send email to all
+        await sendNewsletterEmail(emails, subject, content);
+
+        res.status(200).json({ message: "Newsletter sent successfully!" });
+    } catch (error) {
+        console.error("Newsletter error:", error);
+        res.status(500).json({ error: "Failed to send newsletter" });
+    }
+});
 
 export default adminrouter
 

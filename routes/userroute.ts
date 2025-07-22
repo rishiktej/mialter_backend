@@ -5,6 +5,7 @@ import Template from "../models/template";
 import requireAuth from './middleware/auth';
 import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer"
+import { sendWelcomeEMail } from '../utils/mailer';
 
 const router = express.Router();
 
@@ -36,6 +37,11 @@ router.post('/signup', async (req: Request, res: Response): Promise<void> => {
         email: user.email,
       },
     });
+    await sendWelcomeEMail(
+      user.email,
+      "Welcome to mialter",
+      `Hello ${user.username}, Enjoy our services!`
+    );
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }
