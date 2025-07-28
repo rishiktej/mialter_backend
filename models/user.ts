@@ -6,6 +6,7 @@ export interface IUser extends Document {
   username: string;
   email: string;
   password: string;
+  subscription: boolean;
   matchPassword(enteredPassword: string): Promise<boolean>;
 }
 
@@ -25,6 +26,10 @@ const userSchema: Schema<IUser> = new Schema(
       type: String,
       required: true,
     },
+    subscription: {
+      type: Boolean,
+      default: false,
+    }
   },
   { timestamps: true }
 );

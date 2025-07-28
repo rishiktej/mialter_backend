@@ -4,14 +4,18 @@ import User from '../models/user';
 import Template from "../models/template";
 import requireAuth from './middleware/auth';
 import bcrypt from "bcryptjs";
-import nodemailer from "nodemailer"
-import { sendWelcomeEMail } from '../utils/mailer';
+import { sendWelcomeEMail, transporter } from '../utils/mailer';
+import { text } from 'stream/consumers';
 
 const router = express.Router();
 
+
+router.get('/', async (req: Request, res: Response): Promise<void> => {
+  res.json({ message: 'This is home page!!' })
+})
 // POST /signup
 router.post('/signup', async (req: Request, res: Response): Promise<void> => {
-  const { username, email, password } = req.body;
+  const { username, email, password, subscription } = req.body;
 
   try {
     // Check if user already exists
@@ -23,7 +27,7 @@ router.post('/signup', async (req: Request, res: Response): Promise<void> => {
 
 
     // Create new user
-    const user = new User({ username, email, password });
+    const user = new User({ username, email, password, subscription });
     await user.save();
 
     // Generate JWT
@@ -35,6 +39,7 @@ router.post('/signup', async (req: Request, res: Response): Promise<void> => {
         id: user._id,
         name: user.username,
         email: user.email,
+        subscription: user.subscription
       },
     });
     await sendWelcomeEMail(
@@ -168,14 +173,6 @@ router.put("/user/profile", requireAuth, async (req, res): Promise<void> => {
 
 const otpMap = new Map<string, { otp: string; expiresAt: number }>();
 
-// Email setup
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 // ✅ 1. Send OTP
 router.post("/user/forgotpassword", async (req, res): Promise<any> => {
@@ -241,6 +238,37 @@ router.post("/reset-password", async (req, res): Promise<void> => {
   res.json({ message: "Password reset successful" });
 });
 
+
+router.put("/subscribe", requireAuth, async (req, res): Promise<void> => {
+  const { subscription } = req.body
+  try {
+    const updated = await User.findOneAndUpdate({ _id: req.userId }, { $set: { subscription } })
+
+    if (!updated) {
+      res.status(404).json("User not found or unauthorised")
+      return
+    }
+
+    res.status(200).json("subscription status updated successfully")
+  } catch {
+    res.status(500).json("Error occured on server side")
+  }
+})
+
+router.get("/subscribe", requireAuth, async (req, res): Promise<void> => {
+  try {
+    const user = await User.findOne({ _id: req.userId })
+
+    if (!user) {
+      res.status(404).json("User not found or unauthorised")
+      return
+    }
+    res.json(user.subscription)
+    res.status(200).json("subscription status updated successfully")
+  } catch {
+    res.status(500).json("Error occured on server side")
+  }
+})
 
 router.get("/proxy-image", async (req, res): Promise<any> => {
   const url = req.query.url as string;
